@@ -5,19 +5,36 @@ set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(LLVM CONFIG)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # Add link flags specific to Darwin
-  message("OSx Compile.")
-  include_directories(/opt/homebrew/opt/llvm/include)
-  link_directories(/opt/homebrew/opt/llvm/lib)
-else()
-  message("Linux Compile. looking for LLVM headers in /usr/lib/llvm-19")
-  include_directories(/usr/lib/llvm-19/include)
-  link_directories(/usr/lib/llvm-19/lib)  
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+# We defer the version checking to this statement
+if("${LLVM_VERSION_MAJOR}" VERSION_LESS 19)
+  message(FATAL_ERROR "Found LLVM ${LLVM_VERSION_MAJOR}, but need LLVM 19 or above")
 endif()
 
+# Use the same C++ standard as LLVM does
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
 
+# Build type
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug CACHE
+      STRING "Build type (default Debug):" FORCE)
+endif()
+
+# Compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall\
+  -fdiagnostics-color=always")
+
+# LLVM is normally built without RTTI. Be consistent with that.
+if(NOT LLVM_ENABLE_RTTI)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-fvisibility-inlines-hidden" SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)

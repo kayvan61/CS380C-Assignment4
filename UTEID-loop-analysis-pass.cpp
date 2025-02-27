@@ -1,46 +1,37 @@
-#include "llvm/Analysis/LoopInfo.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
-#include "llvm/Support/raw_ostream.h"
+#include "UTEID-loop-analysis-pass.h"
 
 using namespace llvm;
 
-namespace {
-
-// New PM implementation
-struct LoopPass : PassInfoMixin<LoopPass> {
-  // Main entry point, takes IR unit to run the pass on (&F) and the
-  // corresponding pass manager (to be queried if need be)
-  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
-    errs() << "hey ;)\n";
-    // get the loop information analysis passes
-    auto& li = FAM.getResult<LoopAnalysis>(F);
-    return PreservedAnalyses::all();
-  }
-
-  // Without isRequired returning true, this pass will be skipped for functions
-  // decorated with the optnone LLVM attribute. Note that clang -O0 decorates
-  // all functions with optnone.
-  static bool isRequired() { return true; }
-};
-} // namespace
+LoopA::Result LoopA::run(Function &F, FunctionAnalysisManager &FAM) {
+  static uint64_t counter = 0;
+  errs() << "Function got: " << counter << "\n";
+  // get the loop information analysis passes
+  auto v = std::vector<uint64_t>();
+  v.push_back(counter++);
+  return v;
+}
 
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
-llvm::PassPluginLibraryInfo getHelloWorldPluginInfo() {
+
+llvm::AnalysisKey LoopA::Key;
+
+llvm::PassPluginLibraryInfo getLoopAnaPluginInfo() {
   return {LLVM_PLUGIN_API_VERSION, "UTEID-Loop-Analysis-Pass", LLVM_VERSION_STRING,
           [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback(
-                [](StringRef Name, FunctionPassManager &FPM,
-                   ArrayRef<PassBuilder::PipelineElement>) {
-                  if (Name == "UTEID-loop-analysis-pass") {
-		    FPM.addPass(LoopSimplifyPass());
-                    FPM.addPass(LoopPass());
-                    return true;
-                  }
-                  return false;
+              [](StringRef Name, FunctionPassManager &FPM,
+                 ArrayRef<PassBuilder::PipelineElement>) {
+                if (Name == "print<UTEID-loop-ana-pass>") {
+                  FPM.addPass(PrintLoopAna());
+                  return true;
+                }
+                return false;
+            });
+            PB.registerAnalysisRegistrationCallback(
+                [](FunctionAnalysisManager &FAM) {
+                  FAM.registerPass([&] { return LoopA(); });
                 });
           }};
 }
@@ -50,5 +41,5 @@ llvm::PassPluginLibraryInfo getHelloWorldPluginInfo() {
 // command line, i.e. via '-passes=hello-world'
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-  return getHelloWorldPluginInfo();
+  return getLoopAnaPluginInfo();
 }
