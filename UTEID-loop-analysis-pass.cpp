@@ -1,21 +1,24 @@
+
 #include "UTEID-loop-analysis-pass.h"
 
 using namespace llvm;
 
 LoopA::Result LoopA::run(Function &F, FunctionAnalysisManager &FAM) {
+  F.print(errs());
   static uint64_t counter = 0;
-  errs() << "Function got: " << counter << "\n";
+  errs() << "hey from analysis\n";
+  errs() << "Function "<< F.getName() << " got: " << counter << "\n";
   // get the loop information analysis passes
   auto v = std::vector<uint64_t>();
   v.push_back(counter++);
   return v;
 }
 
+llvm::AnalysisKey LoopA::Key;
+
 //-----------------------------------------------------------------------------
 // New PM Registration
 //-----------------------------------------------------------------------------
-
-llvm::AnalysisKey LoopA::Key;
 
 llvm::PassPluginLibraryInfo getLoopAnaPluginInfo() {
   return {LLVM_PLUGIN_API_VERSION, "UTEID-Loop-Analysis-Pass", LLVM_VERSION_STRING,

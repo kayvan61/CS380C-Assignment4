@@ -5,7 +5,39 @@ PreservedAnalyses LoopPass::run(Function &F, FunctionAnalysisManager &FAM) {
   // get the loop information analysis passes
   auto& li = FAM.getResult<LoopAnalysis>(F);
   LoopA::Result& temp = FAM.getResult<LoopA>(F);
-  errs() << temp.front() << "\n";
+
+  int counter = 0;
+  Value* instr_to_move = nullptr;
+  for(auto& BB: F) {
+    for(auto& I: BB) {
+      if(++counter == 3) {
+        instr_to_move = &I;
+        goto e;
+      }
+    }
+    if(counter == 3) {
+      break;
+    }
+  }
+ e:
+  instr_to_move->print(errs());
+  dyn_cast<Instruction>(instr_to_move)->removeFromParent();
+  errs() << "\n";
+  
+  counter = 0;
+  for(auto& BB: F) {
+    for(auto& I: BB) {
+      if(++counter == 4) {
+        dyn_cast<Instruction>(instr_to_move)->insertAfter(&I);
+        goto done;
+      }
+    }
+    if(counter == 3) {
+      break;
+    }
+  }
+ done:
+  errs() << "Function "<< F.getName() << " got: " << temp.front() << " in opt from analysisMan\n";
   return PreservedAnalyses::all();
 }
 

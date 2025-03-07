@@ -7,6 +7,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Pass.h"
 
+  
 struct LoopA : public llvm::AnalysisInfoMixin<LoopA> {
   using Result = std::vector<uint64_t>;
   // Main entry point, takes IR unit to run the pass on (&F) and the
@@ -25,3 +26,4 @@ struct PrintLoopAna: public llvm::PassInfoMixin<PrintLoopAna> {
         return llvm::PreservedAnalyses::all();
     }
 };
+ 

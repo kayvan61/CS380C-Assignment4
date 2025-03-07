@@ -16,3 +16,5 @@ This should be familiar for anyone who has used CMake before. if not then follow
 - CMake build files into `./build` using `cmake -S . -B ./build`
 - Run make on the newly built files. `make -C ./build`
 
+# Demo
+If you want to run the demo which moves some code around, please use tester.ll! It's not a very good optimization, so it breaks when its run on temp.ll 
