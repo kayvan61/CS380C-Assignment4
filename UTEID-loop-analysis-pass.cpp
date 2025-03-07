@@ -6,8 +6,6 @@
 
 using namespace llvm;
 
-namespace {
-
 // New PM implementation
 struct LoopPass : PassInfoMixin<LoopPass> {
   // Main entry point, takes IR unit to run the pass on (&F) and the
@@ -24,7 +22,6 @@ struct LoopPass : PassInfoMixin<LoopPass> {
   // all functions with optnone.
   static bool isRequired() { return true; }
 };
-} // namespace
 
 //-----------------------------------------------------------------------------
 // New PM Registration
